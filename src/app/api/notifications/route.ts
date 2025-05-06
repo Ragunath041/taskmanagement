@@ -1,26 +1,5 @@
 import { NextResponse } from 'next/server';
-
-export interface Notification {
-  _id: string;
-  taskId: string;
-  title: string;
-  description?: string;
-  assignedTo: {
-    email: string;
-    name?: string;
-  };
-  assignedBy: {
-    email: string;
-    name?: string;
-  };
-  status: 'pending' | 'accepted' | 'rejected';
-  createdAt: string;
-  priority?: 'low' | 'medium' | 'high';
-  dueDate?: string;
-}
-
-// In-memory store for notifications (replace with database in production)
-export let notifications: Notification[] = [];
+import { Notification, notifications } from './types';
 
 export async function GET(request: Request) {
   try {
@@ -57,8 +36,8 @@ export async function POST(request: Request) {
       taskId: body.taskId,
       title: body.title,
       description: body.description,
-      assignedTo: body.assignedTo, // Now matches the Task interface
-      assignedBy: body.assignedBy, // Now matches the Task interface
+      assignedTo: body.assignedTo,
+      assignedBy: body.assignedBy,
       status: 'pending' as const,
       createdAt: new Date().toISOString(),
       priority: body.priority,
