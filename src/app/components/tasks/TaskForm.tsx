@@ -54,7 +54,7 @@ export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
         assignedTo: {
           email: value,
           name: ''
-        }
+    }
       }));
     } else {
       setFormData(prev => ({
@@ -74,8 +74,8 @@ export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
       if (!token) {
         throw new Error('No authentication token found');
       }
-
-      // Get current user info
+    
+    // Get current user info
       const userResponse = await fetch(`${API_URL}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -89,15 +89,15 @@ export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
       const userData = await userResponse.json();
       
       // Add assignedBy info
-      const taskData = {
-        ...formData,
-        assignedBy: {
+    const taskData = {
+      ...formData,
+      assignedBy: {
           email: userData.email,
           name: userData.name
-        }
-      };
-
-      onSubmit(taskData);
+      }
+    };
+    
+    onSubmit(taskData);
     } catch (error) {
       console.error('Error submitting task:', error);
       setError('Failed to submit task');

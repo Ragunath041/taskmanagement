@@ -34,8 +34,8 @@ const taskSchema = new mongoose.Schema({
   },
   assignedBy: {
     email: {
-      type: String,
-      required: true
+    type: String,
+    required: true
     },
     name: {
       type: String
