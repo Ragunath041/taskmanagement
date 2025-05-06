@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { API_URL } from '../../config';
 
 interface Task {
   _id?: string;
@@ -6,29 +7,103 @@ interface Task {
   description: string;
   dueDate: string;
   priority: 'low' | 'medium' | 'high';
-  status: 'todo' | 'in-progress' | 'completed';
-  assignedTo: string;
+  status: 'todo' | 'inprogress' | 'completed' | 'rejected';
+  assignedTo: {
+    email: string;
+    name?: string;
+  };
+  assignedBy?: {
+    email: string;
+    name?: string;
+  };
 }
 
 interface TaskFormProps {
   task?: Task;
-  onSubmit: (task: Omit<Task, '_id'>) => void;
+  onSubmit: (task: Task) => void;
   onCancel: () => void;
 }
 
 export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
-  const [formData, setFormData] = useState<Omit<Task, '_id'>>({
-    title: task?.title || '',
-    description: task?.description || '',
-    dueDate: task?.dueDate || '',
-    priority: task?.priority || 'medium',
-    status: task?.status || 'todo',
-    assignedTo: task?.assignedTo || '',
+  const [formData, setFormData] = useState<Task>({
+    title: '',
+    description: '',
+    dueDate: '',
+    priority: 'medium',
+    status: 'todo',
+    assignedTo: {
+      email: '',
+      name: ''
+    }
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [error, setError] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (task) {
+      setFormData(task);
+    }
+  }, [task]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    if (name === 'assignedTo') {
+      setFormData(prev => ({
+        ...prev,
+        assignedTo: {
+          email: value,
+          name: ''
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Get current user info
+      const userResponse = await fetch(`${API_URL}/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!userResponse.ok) {
+        throw new Error('Failed to get current user info');
+      }
+
+      const userData = await userResponse.json();
+      
+      // Add assignedBy info
+      const taskData = {
+        ...formData,
+        assignedBy: {
+          email: userData.email,
+          name: userData.name
+        }
+      };
+
+      onSubmit(taskData);
+    } catch (error) {
+      console.error('Error submitting task:', error);
+      setError('Failed to submit task');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -38,83 +113,124 @@ export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
           {task ? 'Edit Task' : 'Create New Task'}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-md">
+              {error}
+            </div>
+          )}
+          
           <div>
-            <label className="block text-sm font-medium text-gray-700">Title</label>
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+              Title
+            </label>
             <input
               type="text"
-              required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              id="title"
+              name="title"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+              Description
+            </label>
             <textarea
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              rows={3}
+              id="description"
+              name="description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={handleChange}
+              required
+              rows={3}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">Due Date</label>
+            <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700">
+              Due Date
+            </label>
             <input
               type="date"
-              required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              id="dueDate"
+              name="dueDate"
               value={formData.dueDate}
-              onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">Priority</label>
+            <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
+              Priority
+            </label>
             <select
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              id="priority"
+              name="priority"
               value={formData.priority}
-              onChange={(e) => setFormData({ ...formData, priority: e.target.value as Task['priority'] })}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             >
-              <option key="low" value="low">Low</option>
-              <option key="medium" value="medium">Medium</option>
-              <option key="high" value="high">High</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
             </select>
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">Status</label>
+            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+              Status
+            </label>
             <select
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              id="status"
+              name="status"
               value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as Task['status'] })}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             >
-              <option key="todo" value="todo">Todo</option>
-              <option key="in-progress" value="in-progress">In Progress</option>
-              <option key="completed" value="completed">Completed</option>
+              <option value="todo">To Do</option>
+              <option value="inprogress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="rejected">Rejected</option>
             </select>
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">Assigned To</label>
+            <label htmlFor="assignedTo" className="block text-sm font-medium text-gray-700">
+              Assign To (Email)
+            </label>
             <input
               type="email"
+              id="assignedTo"
+              name="assignedTo"
+              value={formData.assignedTo.email}
+              onChange={handleChange}
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              placeholder="Email address"
-              value={formData.assignedTo}
-              onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+              placeholder="Enter user's email address"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
-          <div className="flex justify-end space-x-3 mt-6">
+
+          <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={isLoading}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {task ? 'Update' : 'Create'}
+              {isLoading ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
             </button>
           </div>
         </form>

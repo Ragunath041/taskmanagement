@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { API_URL } from '../../config'
 
 interface LoginFormProps {
   onLogin: () => void
@@ -13,18 +14,21 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
     password: ''
   })
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setIsLoading(true)
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
+        credentials: 'include'
       })
 
       const data = await response.json()
@@ -33,13 +37,16 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
         throw new Error(data.error || 'Login failed')
       }
 
-      // Store the token
+      // Store the token and user email
       localStorage.setItem('token', data.token)
+      localStorage.setItem('userEmail', formData.email)
       
       // Call onLogin after successful token storage
       onLogin()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -71,6 +78,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
                 placeholder="Email address"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -86,6 +94,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
                 placeholder="Password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -93,9 +102,14 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
             >
-              Sign in
+              {isLoading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+              ) : (
+                'Sign in'
+              )}
             </button>
           </div>
         </form>

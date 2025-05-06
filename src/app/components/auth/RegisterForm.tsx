@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { API_URL } from '../../config'
 
 interface RegisterFormProps {
   onRegister: () => void
@@ -15,18 +16,21 @@ export default function RegisterForm({ onRegister }: RegisterFormProps) {
     confirmPassword: ''
   })
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setIsLoading(true)
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match')
+      setIsLoading(false)
       return
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,6 +40,7 @@ export default function RegisterForm({ onRegister }: RegisterFormProps) {
           email: formData.email,
           password: formData.password
         }),
+        credentials: 'include'
       })
 
       const data = await response.json()
@@ -44,9 +49,16 @@ export default function RegisterForm({ onRegister }: RegisterFormProps) {
         throw new Error(data.error || 'Registration failed')
       }
 
+      // Store user info after successful registration
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('userEmail', formData.email)
+      localStorage.setItem('userName', formData.name)
+
       onRegister()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -78,6 +90,7 @@ export default function RegisterForm({ onRegister }: RegisterFormProps) {
                 placeholder="Full Name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -93,6 +106,7 @@ export default function RegisterForm({ onRegister }: RegisterFormProps) {
                 placeholder="Email address"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -108,6 +122,7 @@ export default function RegisterForm({ onRegister }: RegisterFormProps) {
                 placeholder="Password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -123,6 +138,7 @@ export default function RegisterForm({ onRegister }: RegisterFormProps) {
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -130,9 +146,14 @@ export default function RegisterForm({ onRegister }: RegisterFormProps) {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
             >
-              Register
+              {isLoading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+              ) : (
+                'Register'
+              )}
             </button>
           </div>
         </form>

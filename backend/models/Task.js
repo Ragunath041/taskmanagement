@@ -20,12 +20,26 @@ const taskSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['todo', 'in-progress', 'completed'],
-    default: 'todo'
+    enum: ['pending', 'todo', 'inprogress', 'completed', 'rejected'],
+    default: 'pending'
   },
   assignedTo: {
-    type: String,
-    required: true
+    email: {
+      type: String,
+      required: true
+    },
+    name: {
+      type: String
+    }
+  },
+  assignedBy: {
+    email: {
+      type: String,
+      required: true
+    },
+    name: {
+      type: String
+    }
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,

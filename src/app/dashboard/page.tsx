@@ -16,8 +16,10 @@ export default function DashboardPage() {
   }, [router])
 
   const handleLogout = () => {
-    // Clear token and redirect to login
+    // Clear all user info and redirect to login
     localStorage.removeItem('token')
+    localStorage.removeItem('userEmail')
+    localStorage.removeItem('userName')
     router.push('/login')
   }
 
