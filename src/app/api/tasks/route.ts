@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Task, tasks } from './types';
 
 // Define the Task type
 export interface Task {

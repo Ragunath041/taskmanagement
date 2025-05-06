@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { notifications } from '../../route';
+import { notifications } from '../../types';
 
 export async function POST(
   request: Request,
