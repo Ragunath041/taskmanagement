@@ -49,7 +49,8 @@ app.use(cors({
   origin: function(origin, callback) {
     const allowedOrigins = [
       'http://localhost:3000',
-      'http://localhost:3001'
+      'http://localhost:3001',
+      'https://taskmanagement-bhl30z12u-ragunath-gs-projects-5f23d998.vercel.app' // Add your Vercel domain here
     ];
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { API_URL } from '../../config';
 import TaskNotification from './TaskNotification';
 import { useRouter } from 'next/navigation';
 

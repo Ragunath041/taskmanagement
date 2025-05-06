@@ -12,7 +12,7 @@ interface Task {
     email: string;
     name?: string;
   };
-  assignedBy?: {
+  assignedBy: {
     email: string;
     name?: string;
   };
@@ -20,18 +20,22 @@ interface Task {
 
 interface TaskFormProps {
   task?: Task;
-  onSubmit: (task: Task) => void;
+  onSubmit: (task: Omit<Task, '_id'>) => void;
   onCancel: () => void;
 }
 
 export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
-  const [formData, setFormData] = useState<Task>({
+  const [formData, setFormData] = useState<Omit<Task, '_id'>>({
     title: '',
     description: '',
     dueDate: '',
     priority: 'medium',
     status: 'todo',
     assignedTo: {
+      email: '',
+      name: ''
+    },
+    assignedBy: {
       email: '',
       name: ''
     }
@@ -42,7 +46,8 @@ export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
 
   useEffect(() => {
     if (task) {
-      setFormData(task);
+      const { _id, ...taskWithoutId } = task;
+      setFormData(taskWithoutId);
     }
   }, [task]);
 
@@ -54,7 +59,7 @@ export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
         assignedTo: {
           email: value,
           name: ''
-    }
+        }
       }));
     } else {
       setFormData(prev => ({
@@ -75,7 +80,7 @@ export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
         throw new Error('No authentication token found');
       }
     
-    // Get current user info
+      // Get current user info
       const userResponse = await fetch(`${API_URL}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -89,15 +94,15 @@ export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
       const userData = await userResponse.json();
       
       // Add assignedBy info
-    const taskData = {
-      ...formData,
-      assignedBy: {
+      const taskData = {
+        ...formData,
+        assignedBy: {
           email: userData.email,
           name: userData.name
-      }
-    };
+        }
+      };
     
-    onSubmit(taskData);
+      onSubmit(taskData);
     } catch (error) {
       console.error('Error submitting task:', error);
       setError('Failed to submit task');
@@ -212,7 +217,6 @@ export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
               value={formData.assignedTo.email}
               onChange={handleChange}
               required
-              placeholder="Enter user's email address"
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
@@ -221,14 +225,14 @@ export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
             >
               {isLoading ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
             </button>

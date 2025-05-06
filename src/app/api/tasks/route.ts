@@ -1,30 +1,22 @@
 import { NextResponse } from 'next/server';
-import { Task, tasks } from './types';
+import { Task } from './types';
 
-// Define the Task type
-export interface Task {
-  _id: string;
-  title: string;
-  description?: string;
-  assignedTo: {
-    email: string;
-    name?: string;
-  };
-  assignedBy: {
-    email: string;
-    name?: string;
-  };
-  status: 'todo' | 'inprogress' | 'completed' | 'rejected';
-  priority: 'low' | 'medium' | 'high';
-  dueDate?: string;
-  createdAt: string;
-}
-
-// In-memory store for tasks (replace with database in production)
-export let tasks: Task[] = [];
+// Get the API URL from environment variable
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export async function GET() {
   try {
+    const response = await fetch(`${API_URL}/api/tasks`, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch tasks');
+    }
+    
+    const tasks = await response.json();
     return NextResponse.json(tasks);
   } catch (error) {
     return NextResponse.json(
@@ -39,8 +31,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const token = request.headers.get('Authorization');
     
-    // Create task in backend
-    const taskResponse = await fetch('http://localhost:5000/api/tasks', {
+    const taskResponse = await fetch(`${API_URL}/api/tasks`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
