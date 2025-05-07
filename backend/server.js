@@ -50,8 +50,9 @@ app.use(cors({
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001',
-      'https://taskmanagement-76ga.vercel.app',  // Your Vercel frontend domain
-      'https://taskmanagement-76ga-ragunath041.vercel.app'  // Potential preview URL
+      'https://taskmanagement-76ga.vercel.app',
+      'https://taskmanagement-76ga-ragunath041.vercel.app',
+      'https://taskmanagement-d0vh2lydz-ragunath-gs-projects-5f23d998.vercel.app'  // New Vercel preview URL
     ];
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
