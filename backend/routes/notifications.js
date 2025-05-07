@@ -22,6 +22,7 @@ const auth = async (req, res, next) => {
 // Get all notifications for the logged-in user
 router.get('/', auth, async (req, res) => {
   try {
+    console.log('Fetching notifications for user:', req.userId);
     const notifications = await Notification.find({ recipient: req.userId })
       .sort({ createdAt: -1 })
       .populate('sender', 'email name')
@@ -29,6 +30,8 @@ router.get('/', auth, async (req, res) => {
         path: 'task',
         select: 'title description status priority dueDate assignedTo assignedBy'
       });
+    
+    console.log('Found notifications:', notifications.length);
     res.json(notifications);
   } catch (error) {
     console.error('Error fetching notifications:', error);

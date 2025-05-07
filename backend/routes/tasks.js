@@ -109,13 +109,22 @@ router.post('/', auth, async (req, res) => {
 
     // Create notification for the assigned user
     const message = `${currentUser.name || currentUser.email} assigned a task to you`;
-    await Notification.create({
+    console.log('Creating notification:', {
+      recipient: assignedUser._id,
+      sender: req.userId,
+      task: task._id,
+      message
+    });
+    
+    const notification = await Notification.create({
       recipient: assignedUser._id,
       sender: req.userId,
       task: task._id,
       message,
       seen: false
     });
+    
+    console.log('Created notification:', notification);
 
     res.status(201).json(task);
   } catch (error) {
