@@ -1,6 +1,8 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { API_URL } from '@/app/config';
 import NotificationsPopup from '../tasks/NotificationsPopup';
 
 interface TaskNotification {
@@ -40,7 +42,7 @@ export default function Navbar({ onLogout, onTaskUpdate }: NavbarProps) {
       if (!token) return;
       
       try {
-        const res = await fetch('http://localhost:5000/api/notifications', {
+        const res = await fetch(`${API_URL}/api/notifications`, {
           headers: { 
             'Authorization': `Bearer ${token}`
           }
@@ -103,7 +105,7 @@ export default function Navbar({ onLogout, onTaskUpdate }: NavbarProps) {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/tasks/${taskId}/accept`, {
+      const response = await fetch(`${API_URL}/api/tasks/${taskId}/accept`, {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -113,7 +115,7 @@ export default function Navbar({ onLogout, onTaskUpdate }: NavbarProps) {
 
       if (response.ok) {
         // Refresh notifications after accepting
-        const res = await fetch('http://localhost:5000/api/notifications', {
+        const res = await fetch(`${API_URL}/api/notifications`, {
           headers: { 
             'Authorization': `Bearer ${token}`
           }
@@ -157,7 +159,7 @@ export default function Navbar({ onLogout, onTaskUpdate }: NavbarProps) {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/tasks/${taskId}/reject`, {
+      const response = await fetch(`${API_URL}/api/tasks/${taskId}/reject`, {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -167,7 +169,7 @@ export default function Navbar({ onLogout, onTaskUpdate }: NavbarProps) {
 
       if (response.ok) {
         // Refresh notifications after rejecting
-        const res = await fetch('http://localhost:5000/api/notifications', {
+        const res = await fetch(`${API_URL}/api/notifications`, {
           headers: { 
             'Authorization': `Bearer ${token}`
           }

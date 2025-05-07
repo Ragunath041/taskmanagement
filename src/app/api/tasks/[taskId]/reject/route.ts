@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { API_URL } from '@/app/config';
 
 export async function POST(
   request: Request,
@@ -8,7 +9,7 @@ export async function POST(
     const { taskId } = params;
     const token = request.headers.get('Authorization');
     
-    const response = await fetch(`http://localhost:5000/api/tasks/${taskId}/reject`, {
+    const response = await fetch(`${API_URL}/api/tasks/${taskId}/reject`, {
       method: 'POST',
       headers: {
         'Authorization': token || ''

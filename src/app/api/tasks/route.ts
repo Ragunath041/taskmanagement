@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { Task } from './types';
 
 // Get the API URL from environment variable
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+import { API_URL } from '@/app/config';
 
 export async function GET() {
   try {
