@@ -21,6 +21,7 @@ if (result.error) {
 console.log('Environment variables loaded:');
 console.log('- PORT:', process.env.PORT);
 console.log('- NODE_ENV:', process.env.NODE_ENV);
+console.log('- MONGODB_URL:', process.env.MONGODB_URL ? 'Set' : 'Not set');
 console.log('- MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'Not set');
 console.log('- JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Not set');
 
@@ -35,7 +36,11 @@ const port = process.env.PORT || 5000;
 // Connect to MongoDB
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/taskmanagement';
+    // Railway provides the connection string in MONGODB_URL
+    const mongoURI = process.env.MONGODB_URL || process.env.MONGODB_URI;
+    if (!mongoURI) {
+      throw new Error('MongoDB connection string not found. Set MONGODB_URL environment variable');
+    }
     await mongoose.connect(mongoURI);
     console.log('Connected to MongoDB');
   } catch (err) {
